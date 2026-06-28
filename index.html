@@ -244,7 +244,7 @@
 })();
 
 // ==================== 弹幕内容库 ====================
-var NAME = "杨紫宣";
+var NAMES = ["杨紫宣"];
 var messages = [
   "你真的很棒！", "今天也要加油鸭～", "你值得世间所有美好",
   "相信自己，你可以的！", "你是最闪耀的星 ✨", "努力的你超级好看",
@@ -330,7 +330,7 @@ function spawnDanmaku() {
   var ci = Math.floor(Math.random() * bgColors.length);
   var nameSpan = document.createElement("span");
   nameSpan.className = "name-tag";
-  nameSpan.textContent = NAME;
+  nameSpan.textContent = pick(NAMES);
   nameSpan.style.color = nameColors[ci];
   var textNode = document.createTextNode("：" + pick(messages));
   el.appendChild(nameSpan);
