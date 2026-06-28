@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>✨ 王紫娟 ✨</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ========== CSS 动画背景 ========== */
+  #css-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  }
+
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { transform: translate(0, 0) scale(1); }
+    25%  { transform: translate(80px, -60px) scale(1.1); }
+    50%  { transform: translate(-40px, 80px) scale(0.9); }
+    75%  { transform: translate(60px, 40px) scale(1.05); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+
+  /* 星星粒子 */
+  .star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.5); }
+  }
+
+  /* ========== 背景视频 ========== */
+  #bg-video {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    display: none;
+  }
+  #bg-video.active {
+    display: block;
+  }
+
+  /* ========== 弹幕层 ========== */
+  #danmaku-layer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .danmaku {
+    position: absolute;
+    white-space: nowrap;
+    padding: 5px 14px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    max-width: 88vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .danmaku .name-tag {
+    font-weight: 700;
+    margin-right: 2px;
+  }
+
+  /* ========== 启动遮罩 ========== */
+  #start-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 1s ease;
+    overflow: hidden;
+  }
+  #start-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .glow-ring {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,180,120,0.4) 0%, rgba(255,100,150,0.15) 50%, transparent 70%);
+    animation: breathe 3s ease-in-out infinite;
+    margin-bottom: 36px;
+    position: relative;
+  }
+  .glow-ring::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 40px rgba(255,160,100,0.5);
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .hint-text {
+    font-size: 15px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 4px;
+    animation: fade-pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes fade-pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  .float-particle {
+    position: absolute;
+    font-size: 20px;
+    opacity: 0.3;
+    animation: float-up linear infinite;
+    pointer-events: none;
+  }
+  @keyframes float-up {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.3; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* ========== 手机适配 ========== */
+  @media (max-width: 600px) {
+    .danmaku { padding: 4px 10px; font-size: 11px; border-radius: 14px; }
+    .glow-ring { width: 110px; height: 110px; margin-bottom: 28px; }
+    .glow-ring::after { width: 42px; height: 42px; }
+    .hint-text { font-size: 13px; letter-spacing: 3px; }
+    .float-particle { font-size: 16px; }
+    .blob { filter: blur(40px); }
+  }
+  @media (max-width: 380px) {
+    .danmaku { font-size: 10px; padding: 3px 8px; }
+    .glow-ring { width: 90px; height: 90px; }
+    .glow-ring::after { width: 36px; height: 36px; }
+    .hint-text { font-size: 12px; }
+  }
+  @media (max-height: 500px) {
+    .glow-ring { width: 80px; height: 80px; margin-bottom: 16px; }
+    .glow-ring::after { width: 32px; height: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CSS 动画背景（默认，始终显示） -->
+<div id="css-bg"></div>
+
+<!-- 背景视频（加载成功后覆盖 CSS 背景） -->
+<video id="bg-video" muted loop playsinline webkit-playsinline x5-playsinline>
+  <source src="video.mp4" type="video/mp4">
+</video>
+
+<audio id="bg-audio" loop preload="auto">
+  <source src="video.mp4" type="video/mp4">
+</audio>
+
+<div id="danmaku-layer"></div>
+
+<div id="start-overlay">
+  <div class="glow-ring"></div>
+  <div class="hint-text">轻 触 屏 幕 开 始</div>
+</div>
+
+<script>
+// ==================== 生成 CSS 动画背景 ====================
+(function() {
+  var cssBg = document.getElementById('css-bg');
+  var blobColors = [
+    'rgba(255,120,180,0.4)', 'rgba(120,200,255,0.4)', 'rgba(180,120,255,0.4)',
+    'rgba(255,200,100,0.35)', 'rgba(100,255,200,0.35)', 'rgba(255,150,100,0.3)'
+  ];
+  for (var i = 0; i < 6; i++) {
+    var b = document.createElement('div');
+    b.className = 'blob';
+    var size = 200 + Math.random() * 300;
+    b.style.width = size + 'px';
+    b.style.height = size + 'px';
+    b.style.left = (Math.random() * 100) + '%';
+    b.style.top = (Math.random() * 100) + '%';
+    b.style.background = blobColors[i];
+    b.style.animationDuration = (15 + Math.random() * 20) + 's';
+    b.style.animationDelay = (-Math.random() * 10) + 's';
+    cssBg.appendChild(b);
+  }
+  for (var j = 0; j < 50; j++) {
+    var s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.top = (Math.random() * 100) + '%';
+    s.style.animationDuration = (2 + Math.random() * 3) + 's';
+    s.style.animationDelay = (-Math.random() * 3) + 's';
+    s.style.width = s.style.height = (2 + Math.random() * 2) + 'px';
+    cssBg.appendChild(s);
+  }
+})();
+
+// ==================== 弹幕内容库 ====================
+var NAMES = ["王紫娟"];
+var messages = [
+  "你真的很棒！", "今天也要加油鸭～", "你值得世间所有美好",
+  "相信自己，你可以的！", "你是最闪耀的星 ✨", "努力的你超级好看",
+  "未来可期，前途无量", "你的笑容治愈一切", "每天进步一点点就很厉害",
+  "你比你想象的更强大", "坚持下去，梦想会实现的", "你是一个很温柔的人呢",
+  "你的眼里有星辰大海", "优秀是你的代名词", "你让这个世界更美好了",
+  "今天也是元气满满的一天", "你的努力终将不负你", "你就是自己的太阳 ☀️",
+  "你已经很棒了，别太辛苦", "所有好运都在向你奔赴", "你值得被爱被珍惜",
+  "保持热爱，奔赴山海", "你身上有光，照亮了别人", "每一天都是新的开始",
+  "你的潜力无限大", "温柔且上进，说的就是你", "你笑起来真好看",
+  "世界因你而精彩", "你是独一无二的存在", "不要放弃，黎明就在前方",
+  "你的善良终有回报", "你是最美的风景", "加油，胜利就在眼前",
+  "你拥有改变世界的力量", "今天也是充满希望的一天", "你的心比星星还亮",
+  "你值得所有的掌声", "坚持做自己就很了不起", "你是一束温暖的光",
+  "你的人生才刚刚开始精彩", "没有什么能阻挡你前进", "你的每一步都算数",
+  "自信的你最迷人", "你就是奇迹本身", "愿你所愿皆能实现",
+  "你比昨天更优秀了", "你是一个发光体", "勇敢地去做吧！",
+  "你的一切努力都有意义", "你是被命运眷顾的人", "你的才华终将被看见",
+  "你配得上最好的一切", "每天都是好日子", "你正在变得越来越好",
+  "你的存在本身就是礼物", "别怕，有光在等你", "你是最棒的，不接受反驳",
+  "好事正在路上", "你值得拥有灿烂人生", "你是最耀眼的那颗星",
+  "全世界都在为你鼓掌", "你永远比自己想的更好", "你的努力，时间都看得到",
+  "保持微笑，好运自来", "你就是满分答案", "你一定能行！",
+  "你是最温暖的存在", "请继续闪闪发光吧", "你的未来光芒万丈",
+  "你让人忍不住想靠近", "一切都刚刚好", "你正走在开满鲜花的路上",
+  "你真的好优秀", "你的坚持让人佩服", "你是最特别的那个人",
+  "你的温柔是超能力", "今天的你闪闪发光", "你值得一个大大的拥抱",
+  "你的梦想一定会实现", "你是最可爱的宝贝", "你让周围的人都变好了",
+  "有你在的地方就有阳光", "你真的很有魅力", "你的努力大家都看在眼里",
+];
+
+var bgColors = [
+  "rgba(255,222,173,0.88)", "rgba(255,218,185,0.88)", "rgba(255,245,200,0.88)",
+  "rgba(200,240,255,0.88)", "rgba(220,245,220,0.88)", "rgba(255,210,220,0.88)",
+  "rgba(230,220,255,0.88)", "rgba(255,240,215,0.88)", "rgba(200,255,230,0.88)",
+  "rgba(255,230,230,0.88)", "rgba(210,235,255,0.88)", "rgba(255,250,220,0.88)",
+];
+var textColors = [
+  "#b8700a","#c46a40","#a08500","#2a7ab5",
+  "#3a8a4a","#c05070","#6a5aad","#a07820",
+  "#2a9a6a","#c06060","#4a7ab0","#b09030",
+];
+var nameColors = [
+  "#d48820","#d47a50","#c09a10","#2a8ac5",
+  "#3a9a5a","#d06080","#7a6abd","#b08830",
+  "#30aa7a","#d07070","#5a8ac0","#c0a040",
+];
+
+function rand(a,b){ return Math.random()*(b-a)+a; }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+var isMobile = /Android|iPhone|iPad|iPod|Mobile|HarmonyOS/i.test(navigator.userAgent) || window.innerWidth < 600;
+
+// ==================== DOM ====================
+var layer = document.getElementById("danmaku-layer");
+var video = document.getElementById("bg-video");
+var audio = document.getElementById("bg-audio");
+var overlay = document.getElementById("start-overlay");
+var danmakuCount = 0;
+var MAX_DANMAKU = 800;
+var startTime = 0;
+var running = false;
+
+// 尝试加载视频（本地打开可能失败，不影响弹幕）
+var videoReady = false;
+video.addEventListener("canplay", function() {
+  videoReady = true;
+  video.classList.add("active");
+  // 隐藏 CSS 背景
+  document.getElementById("css-bg").style.opacity = "0.3";
+});
+video.addEventListener("error", function() {
+  // 视频加载失败，CSS 背景继续显示
+});
+
+// ==================== 弹幕发射 ====================
+function spawnDanmaku() {
+  if (!running || danmakuCount >= MAX_DANMAKU) return;
+
+  var el = document.createElement("div");
+  el.className = "danmaku";
+
+  var ci = Math.floor(Math.random() * bgColors.length);
+  var nameSpan = document.createElement("span");
+  nameSpan.className = "name-tag";
+  nameSpan.textContent = pick(NAMES);
+  nameSpan.style.color = nameColors[ci];
+  var textNode = document.createTextNode("：" + pick(messages));
+  el.appendChild(nameSpan);
+  el.appendChild(textNode);
+
+  var topMin = isMobile ? 1 : 2;
+  var topMax = isMobile ? 95 : 92;
+  var leftMax = isMobile ? 55 : 70;
+  var fontMin = isMobile ? 11 : 13;
+  var fontMax = isMobile ? 16 : 20;
+
+  el.style.top = rand(topMin, topMax) + "%";
+  el.style.left = rand(3, leftMax) + "%";
+  el.style.fontSize = rand(fontMin, fontMax) + "px";
+  el.style.background = bgColors[ci];
+  el.style.color = textColors[ci];
+  el.style.opacity = "0";
+
+  layer.appendChild(el);
+  danmakuCount++;
+
+  requestAnimationFrame(function() {
+    el.style.transition = "opacity 0.5s ease";
+    el.style.opacity = rand(0.85, 0.95).toString();
+  });
+}
+
+// ==================== 弹幕节奏 ====================
+var PHASE1_END = 30000;
+var PHASE2_BURST = 35;
+
+function getInterval(elapsed) {
+  if (elapsed < PHASE1_END) {
+    return 800 - (elapsed / PHASE1_END) * 650;
+  }
+  var over = (elapsed - PHASE1_END) / 1000;
+  return Math.max(30, 150 * Math.exp(-over * 0.15));
+}
+
+function tick() {
+  if (!running) return;
+  var elapsed = Date.now() - startTime;
+  spawnDanmaku();
+
+  if (elapsed >= PHASE1_END && elapsed < PHASE1_END + 800 && !tick._bursted) {
+    tick._bursted = true;
+    for (var i = 0; i < PHASE2_BURST; i++) {
+      (function(idx){ setTimeout(spawnDanmaku, idx * 25); })(i);
+    }
+  }
+  setTimeout(tick, getInterval(elapsed));
+}
+tick._bursted = false;
+
+// ==================== 漂浮粒子 ====================
+var floatEmojis = ["✨","🌸","💫","🍀","🌟","💛","🦋","☀️","🌷","⭐","🌈","🍃"];
+function createParticle() {
+  var el = document.createElement("div");
+  el.className = "float-particle";
+  el.textContent = pick(floatEmojis);
+  el.style.left = rand(5, 95) + "%";
+  el.style.bottom = "-40px";
+  el.style.fontSize = rand(16, 28) + "px";
+  el.style.animationDuration = rand(8, 16) + "s";
+  el.style.animationDelay = rand(0, 2) + "s";
+  overlay.appendChild(el);
+  el.addEventListener("animationend", function(){ el.remove(); });
+}
+var particleTimer = setInterval(createParticle, 1200);
+for (var pi = 0; pi < 6; pi++) (function(i){ setTimeout(createParticle, i * 400); })(pi);
+
+// ==================== 启动逻辑 ====================
+var started = false;
+
+function doStart() {
+  if (started) return;
+  started = true;
+  clearInterval(particleTimer);
+  overlay.classList.add("hidden");
+  setTimeout(function(){ overlay.style.display = "none"; }, 1000);
+  running = true;
+  startTime = Date.now();
+  tick();
+}
+
+// 尝试播放视频+音频
+function tryPlayMedia() {
+  // 如果视频已加载，尝试播放
+  if (video.readyState >= 2) {
+    video.play().catch(function(){});
+    // 尝试取消静音
+    video.muted = false;
+  }
+  // 独立音频兜底
+  audio.play().catch(function(){});
+}
+
+overlay.addEventListener("touchstart", function handler(e) {
+  e.preventDefault();
+  tryPlayMedia();
+  overlay.removeEventListener("touchstart", handler);
+  doStart();
+}, { passive: false });
+
+overlay.addEventListener("click", function handler() {
+  tryPlayMedia();
+  overlay.removeEventListener("click", handler);
+  doStart();
+});
+</script>
+</body>
+</html>
